@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from colorama import init, Fore, Style
 import openpyxl as opx
@@ -46,8 +47,15 @@ async def check_uptime(path: str) -> None:
 
     await session.close()
 
-    print('Guardando Excel con estados de código...')
-    excel.save('estados.xlsx')
+    filename = 'estados.xlsx'
+    print(f'Guardando archivo con estados de código en {Fore.GREEN}{filename}{Fore.RESET}...')
+    excel.save(filename)
+
+    print('Abriendo archivo...')
+    try:
+        os.system(f"start excel.exe {filename}")
+    except:
+        print('Ocurrió un error al abrir el archivo, pero se guardó correctamente.')
 
 
 if __name__ == '__main__':
