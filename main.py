@@ -2,30 +2,28 @@ import asyncio
 
 from colorama import init, Fore, Style
 import openpyxl as opx
+from openpyxl.styles import PatternFill
+from openpyxl.styles.colors import Color
 import aiohttp
 
 
 async def check_uptime(path: str) -> None:
     print('Leyendo Excel...\n')
 
-    red_fill = opx.styles.PatternFill(
+    red_fill = PatternFill(
         fill_type='solid',
-        fgColor=opx.styles.colors.Color('50FF0000')
+        fgColor=Color('FFC7CE')
     )
-    green_fill = opx.styles.PatternFill(
+    green_fill = PatternFill(
         fill_type='solid',
-        fgColor=opx.styles.colors.Color('5000979700')
+        fgColor=Color('C6EFCE')
     )
 
     excel = opx.load_workbook(path)
     sheet = excel.active
     sheet.insert_cols(11)
     session = aiohttp.ClientSession()
-    i = 0
     for row in sheet.iter_rows(min_row=8, min_col=6, max_col=11):
-        if i == 10:
-            break
-        i += 1
         name = ' '.join(str(row[i].value) for i in range(0, 3, 1))
         if not name.isupper():
             name = 'Clasificado'
@@ -48,7 +46,7 @@ async def check_uptime(path: str) -> None:
 
     await session.close()
 
-    print('Guardando estados de código...')
+    print('Guardando Excel con estados de código...')
     excel.save('estados.xlsx')
 
 
