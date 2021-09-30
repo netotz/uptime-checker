@@ -1,5 +1,7 @@
-import asyncio
 import os
+import asyncio
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
 
 from rich import print
 from rich.console import Console
@@ -20,7 +22,7 @@ async def check_uptime(path: str) -> None:
     )
 
     console = Console()
-    with console.status('Leyendo Excel...\n'):
+    with console.status('Leyendo Excel...\n', spinner='point'):
         src_excel = opx.load_workbook(path)
     src_sheet = src_excel.active
     src_sheet.insert_cols(11)
@@ -77,5 +79,12 @@ async def check_uptime(path: str) -> None:
 
 
 if __name__ == '__main__':
+    console = Console()
+    with console.status('Selecciona el archivo de Excel', spinner='point'):
+        tk.Tk().withdraw()
+        path = askopenfilename()
+
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(check_uptime('Z:\\honorarios.xlsx'))
+    loop.run_until_complete(check_uptime(path))
+
+    os.system('pause')
