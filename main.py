@@ -2,6 +2,7 @@ import asyncio
 import os
 
 from rich import print
+from rich.console import Console
 import openpyxl as opx
 from openpyxl.styles import PatternFill
 from openpyxl.styles.colors import Color
@@ -18,8 +19,9 @@ async def check_uptime(path: str) -> None:
         fgColor=Color('C6EFCE')
     )
 
-    print('Leyendo Excel...\n')
-    src_excel = opx.load_workbook(path)
+    console = Console()
+    with console.status('Leyendo Excel...\n'):
+        src_excel = opx.load_workbook(path)
     src_sheet = src_excel.active
     src_sheet.insert_cols(11)
 
@@ -37,9 +39,9 @@ async def check_uptime(path: str) -> None:
         print(f'Contrato de [b]{name}[/]')
 
         url = row[9].value
-        print(f'Checando enlace [cyan]{url}[/]...')
-        async with session.head(url) as response:
-            status = response.status
+        with console.status(f'Checando enlace [cyan]{url}[/]...', spinner='point'):
+            async with session.head(url) as response:
+                status = response.status
 
         is_success = 200 <= status < 300
         color = '[green]' if is_success else '[red]'
@@ -56,18 +58,22 @@ async def check_uptime(path: str) -> None:
     await session.close()
 
     src_filename = 'estados.xlsx'
-    print(f'Guardando archivo con códigos de estado como [blue]{src_filename}[/]...')
-    src_excel.save(src_filename)
+    with console.status(
+            f'Guardando archivo con códigos de estado como [blue]{src_filename}[/]...',
+            spinner='point'):
+        src_excel.save(src_filename)
 
     notfound_filename = 'no_encontrados.xlsx'
-    print(f'Guardando archivo con contratos no encontrados como [magenta]{notfound_filename}[/]...')
-    notfound_excel.save(notfound_filename)
+    with console.status(
+            f'Guardando archivo con contratos no encontrados como [magenta]{notfound_filename}[/]...',
+            spinner='point'):
+        notfound_excel.save(notfound_filename)
 
-    print(f'Abriendo [magenta]{notfound_filename}[/]...')
-    try:
-        os.system(f"start excel.exe {notfound_filename}")
-    except:
-        print('Ocurrió un error al abrir Excel, pero el archivo se guardó correctamente.')
+    with console.status(f'Abriendo [magenta]{notfound_filename}[/]...'):
+        try:
+            os.system(f"start excel.exe {notfound_filename}")
+        except:
+            print('Ocurrió un error al abrir Excel, pero el archivo se guardó correctamente.')
 
 
 if __name__ == '__main__':
