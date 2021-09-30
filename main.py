@@ -78,13 +78,22 @@ async def check_uptime(path: str) -> None:
             print('Ocurrió un error al abrir Excel, pero el archivo se guardó correctamente.')
 
 
-if __name__ == '__main__':
+def main() -> None:
     console = Console()
     with console.status('Selecciona el archivo de Excel', spinner='point'):
         tk.Tk().withdraw()
         path = askopenfilename()
+    
+    if path == '':
+        return
+
+    print(f'Ruta del archivo: [yellow]{path}[/]')
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(check_uptime(path))
 
     os.system('pause')
+
+
+if __name__ == '__main__':
+    main()
