@@ -71,7 +71,7 @@ async def check_uptime(path: str) -> None:
             spinner='point'):
         notfound_excel.save(notfound_filename)
 
-    with console.status(f'Abriendo [magenta]{notfound_filename}[/]...'):
+    with console.status(f'Abriendo [magenta]{notfound_filename}[/]...', spinner='point'):
         try:
             os.system(f"start excel.exe {notfound_filename}")
         except:
