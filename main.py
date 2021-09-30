@@ -1,8 +1,7 @@
 import asyncio
 import os
 
-import colorama
-from colorama import init, Fore, Style
+from rich import print
 import openpyxl as opx
 from openpyxl.styles import PatternFill
 from openpyxl.styles.colors import Color
@@ -35,17 +34,17 @@ async def check_uptime(path: str) -> None:
         name = ' '.join(str(row[i].value) for i in range(5, 8, 1))
         if not name.isupper():
             name = 'Clasificado'
-        print(f'Contrato de {Style.BRIGHT}{name}{Style.RESET_ALL}')
+        print(f'Contrato de [b]{name}[/]')
 
         url = row[9].value
-        print(f'Checando enlace {Fore.CYAN}{url}{Fore.RESET}...')
+        print(f'Checando enlace [cyan]{url}[/]...')
         async with session.head(url) as response:
             status = response.status
 
         is_success = 200 <= status < 300
-        color = Fore.GREEN if is_success else Fore.RED
-        print(f'Código de estado: {color}{status}{Fore.RESET}\n')
-    
+        color = '[green]' if is_success else '[red]'
+        print(f'Código de estado: {color}{status}[/]\n')
+
         fill = green_fill if is_success else red_fill
         row[10].value = status
         row[9].fill = fill
@@ -57,14 +56,14 @@ async def check_uptime(path: str) -> None:
     await session.close()
 
     src_filename = 'estados.xlsx'
-    print(f'Guardando archivo con códigos de estado como {Fore.BLUE}{src_filename}{Fore.RESET}...')
+    print(f'Guardando archivo con códigos de estado como [blue]{src_filename}[/]...')
     src_excel.save(src_filename)
 
     notfound_filename = 'no_encontrados.xlsx'
-    print(f'Guardando archivo con contratos no encontrados como {Fore.RED}{notfound_filename}{Fore.RESET}...')
+    print(f'Guardando archivo con contratos no encontrados como [magenta]{notfound_filename}[/]...')
     notfound_excel.save(notfound_filename)
 
-    print(f'Abriendo {Fore.RED}{notfound_filename}{Fore.RESET}...')
+    print(f'Abriendo [magenta]{notfound_filename}[/]...')
     try:
         os.system(f"start excel.exe {notfound_filename}")
     except:
@@ -72,6 +71,5 @@ async def check_uptime(path: str) -> None:
 
 
 if __name__ == '__main__':
-    colorama.init()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(check_uptime('Z:\\honorarios.xlsx'))
