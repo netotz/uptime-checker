@@ -1,6 +1,7 @@
 import asyncio
 import os
 
+import colorama
 from colorama import init, Fore, Style
 import openpyxl as opx
 from openpyxl.styles import PatternFill
@@ -9,8 +10,6 @@ import aiohttp
 
 
 async def check_uptime(path: str) -> None:
-    print('Leyendo Excel...\n')
-
     red_fill = PatternFill(
         fill_type='solid',
         fgColor=Color('FFC7CE')
@@ -20,45 +19,59 @@ async def check_uptime(path: str) -> None:
         fgColor=Color('C6EFCE')
     )
 
-    excel = opx.load_workbook(path)
-    sheet = excel.active
-    sheet.insert_cols(11)
+    print('Leyendo Excel...\n')
+    src_excel = opx.load_workbook(path)
+    src_sheet = src_excel.active
+    src_sheet.insert_cols(11)
+
+    headers = src_sheet[7]
+    notfound_excel = opx.Workbook()
+    notfound_sheet = notfound_excel.active
+    notfound_sheet.title = 'Contratos no encontrados'
+    notfound_sheet.append(cell.value for cell in headers)
+
     session = aiohttp.ClientSession()
-    for row in sheet.iter_rows(min_row=8, min_col=6, max_col=11):
-        name = ' '.join(str(row[i].value) for i in range(0, 3, 1))
+    for row in src_sheet.iter_rows(min_row=8):
+        name = ' '.join(str(row[i].value) for i in range(5, 8, 1))
         if not name.isupper():
             name = 'Clasificado'
-
-        url = row[4].value
-
         print(f'Contrato de {Style.BRIGHT}{name}{Style.RESET_ALL}')
-        print(f'Checando enlace {Fore.CYAN}{url}{Fore.RESET}...')
 
+        url = row[9].value
+        print(f'Checando enlace {Fore.CYAN}{url}{Fore.RESET}...')
         async with session.head(url) as response:
             status = response.status
-            is_success = 200 <= status < 300
-            color = Fore.GREEN if is_success else Fore.RED
-            print(f'Código de estado: {color}{status}{Fore.RESET}\n')
-            row[5].value = status
 
-            fill = green_fill if is_success else red_fill
-            row[4].fill = fill
-            row[5].fill = fill
+        is_success = 200 <= status < 300
+        color = Fore.GREEN if is_success else Fore.RED
+        print(f'Código de estado: {color}{status}{Fore.RESET}\n')
+    
+        fill = green_fill if is_success else red_fill
+        row[10].value = status
+        row[9].fill = fill
+        row[10].fill = fill
+
+        if not is_success:
+            notfound_sheet.append(cell.value for cell in row)
 
     await session.close()
 
-    filename = 'estados.xlsx'
-    print(f'Guardando archivo con estados de código en {Fore.GREEN}{filename}{Fore.RESET}...')
-    excel.save(filename)
+    src_filename = 'estados.xlsx'
+    print(f'Guardando archivo con códigos de estado como {Fore.BLUE}{src_filename}{Fore.RESET}...')
+    src_excel.save(src_filename)
 
-    print('Abriendo archivo...')
+    notfound_filename = 'no_encontrados.xlsx'
+    print(f'Guardando archivo con contratos no encontrados como {Fore.RED}{notfound_filename}{Fore.RESET}...')
+    notfound_excel.save(notfound_filename)
+
+    print(f'Abriendo {Fore.RED}{notfound_filename}{Fore.RESET}...')
     try:
-        os.system(f"start excel.exe {filename}")
+        os.system(f"start excel.exe {notfound_filename}")
     except:
-        print('Ocurrió un error al abrir el archivo, pero se guardó correctamente.')
+        print('Ocurrió un error al abrir Excel, pero el archivo se guardó correctamente.')
 
 
 if __name__ == '__main__':
-    init()
+    colorama.init()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(check_uptime('Z:\\honorarios.xlsx'))
