@@ -60,12 +60,17 @@ The PC of the user doesn't have Python installed, and it would just be a hassle 
 
 Now the user doesn't have to bother to copy and paste all the links in a website, and then copying and pasting the results back to the file, and then filtering them.
 
+I learned how to manipulate Excel files using Python, and that I prefer CSVs and Pandas.
+I also used the Rich package for the first time, and it's great.
+
 ## Screenshots
 
 As you can imagine the file contains sensitive data.
 
 Output in console:
+
 ![Console output](static/screenshot_console.png)
 
 Excel file after running the script:
+
 ![Excel](static/screenshot_excel.png)
