@@ -2,6 +2,7 @@ import os
 import asyncio
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
+import traceback
 
 from rich import print
 from rich.console import Console
@@ -36,11 +37,15 @@ async def check_uptime(path: str) -> None:
     session = aiohttp.ClientSession()
     for row in src_sheet.iter_rows(min_row=8):
         name = ' '.join(str(row[i].value) for i in range(5, 8, 1))
+        url = row[9].value
+
+        if not isinstance(url, str):
+            break
+
         if not name.isupper():
             name = 'Clasificado'
         print(f'Contrato de [b]{name}[/]')
 
-        url = row[9].value
         with console.status(f'Checando enlace [cyan]{url}[/]...', spinner='point'):
             async with session.head(url) as response:
                 status = response.status
@@ -89,10 +94,13 @@ def main() -> None:
 
     print(f'Ruta del archivo: [yellow]{path}[/]')
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(check_uptime(path))
-
-    os.system('pause')
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(check_uptime(path))
+    except Exception:
+        traceback.print_exc()
+    finally:
+        os.system('pause')
 
 
 if __name__ == '__main__':
